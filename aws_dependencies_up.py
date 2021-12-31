@@ -105,6 +105,11 @@ def create_cluster(config: configparser.ConfigParser, iam: boto3.client) -> boto
 				ClusterIdentifier=config.get("CLUSTER", "DWH_CLUSTER_IDENTIFIER")
 			)["Clusters"][0]
 	print(f"DWH endpoint: {cluster_description['Endpoint']['Address']}")
+	print(f"DWH role ARN: {cluster_description['IamRoles'][0]['IamRoleArn']}")
+	config["CLUSTER"]["DWH_ENDPOINT"] = cluster_description['Endpoint']['Address']
+	config["CLUSTER"]["DWH_ROLE_ARN"] = cluster_description['IamRoles'][0]['IamRoleArn']
+	with open("dwh.cfg", "w") as file:
+		config.write(file)
 	return redshift_client
 
 
