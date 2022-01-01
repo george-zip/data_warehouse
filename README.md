@@ -10,7 +10,7 @@ JSON log files hosted in S3 provide the source of raw song play data and other J
 
 The project contains the following scripts:
 
-[aws_dependencies_up.py](aws_dependencies_up.py) brings up the project's dependencies on AWS, including establishing IAM roles and the Redshift cluster.
+[aws_dependencies_up.py](aws_dependencies_up.py) brings up the project's dependencies on AWS, including establishing IAM roles and the Redshift cluster. Waits until cluster is described as available. This may take several minutes.
 
 [aws_dependencies_down.py](aws_dependencies_down.py) shuts down the Redshift cluster on AWS and deletes any IAM roles.
 
