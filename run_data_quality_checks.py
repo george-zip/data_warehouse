@@ -1,6 +1,10 @@
 import configparser
 import psycopg2
 
+"""
+Data quality checks for each of the staging and final tables
+"""
+
 data_quality_checks = [
 	"select * from log_data_staging limit 5;",
 	"select * from song_data_staging limit 5",
@@ -14,6 +18,8 @@ data_quality_checks = [
 
 
 def main():
+	# load configuration, connect to DB, then run queries
+	# raise exception on unexpected result
 	config = configparser.ConfigParser()
 	config.read('dwh.cfg')
 
@@ -35,15 +41,6 @@ def main():
 		else:
 			raise RuntimeError(f"Query did not return results: {query}")
 		print("-" * 10)
-
-	# cur.execute("delete from log_data_staging where 1=1;")
-	# cur.execute("delete from song_data_staging where 1=1;")
-	# cur.execute("delete from songs where 1=1;")
-	# cur.execute("delete from artists where 1=1;")
-	# cur.execute("delete from users where 1=1;")
-	# cur.execute("delete from time where 1=1;")
-	# cur.execute("delete from songplays where 1=1;")
-	# conn.commit()
 
 	conn.close()
 

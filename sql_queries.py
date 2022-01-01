@@ -16,6 +16,7 @@ time_table_drop = "drop table if exists time"
 
 # CREATE TABLES
 
+# staging table for log data
 staging_events_table_create = ("""
 create table if not exists log_data_staging (
 artist text,
@@ -39,6 +40,7 @@ userid text
 );
 """)
 
+# staging table for song dataset
 staging_songs_table_create = ("""
 create table if not exists song_data_staging (
 artist_id text,
@@ -110,7 +112,7 @@ weekday int not null
 ) diststyle all;
 """)
 
-# STAGING TABLES
+# Extraction into staging tables using redshift copy command
 
 staging_events_copy = (f"""
 copy log_data_staging from 's3://udacity-dend/log_data'
@@ -127,6 +129,8 @@ region 'us-west-2';
 """)
 
 # FINAL TABLES
+
+# Copy into final tables from staging
 
 songplay_table_insert = ("""
 insert into songplays (start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)

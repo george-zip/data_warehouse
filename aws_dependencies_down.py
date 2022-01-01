@@ -4,8 +4,13 @@ import os
 import time
 from aws_dependencies_up import cluster_exists, role_exists
 
+"""
+Shut down redshift cluster and delete IAM role
+"""
+
 
 def shut_down_cluster(config: configparser.ConfigParser):
+	# shut down redshift cluster if it exists
 	redshift_client = boto3.client(
 		"redshift",
 		region_name=config.get("CLUSTER", "DWH_REGION"),
@@ -39,6 +44,7 @@ def shut_down_cluster(config: configparser.ConfigParser):
 
 
 def delete_role(config):
+	# delete iam role if it exists
 	iam = boto3.client(
 		"iam",
 		region_name=config.get("CLUSTER", "DWH_REGION"),

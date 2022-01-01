@@ -5,8 +5,9 @@ import json
 import time
 
 """
-Create iam role and redshift cluster if they do not already exist.
-Otherwise, do nothing.
+Create iam role and redshift cluster if they do not already exist. Otherwise, do nothing.
+Update configuration file with IAM ARN and redshift endpoint so that values can be used in other
+scripts.
 """
 
 
