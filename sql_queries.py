@@ -17,7 +17,7 @@ time_table_drop = "drop table if exists time"
 # CREATE TABLES
 
 staging_events_table_create = ("""
-create temp table if not exists log_data_staging (
+create table if not exists log_data_staging (
 num int,
 artist text,
 auth text,
@@ -41,11 +41,11 @@ userId text
 """)
 
 staging_songs_table_create = ("""
-create temp table if not exists song_data_staging (
+create table if not exists song_data_staging (
 num int,
 artist_id text,
-artist_latitude int,
-artist_longitude int,
+artist_latitude numeric,
+artist_longitude numeric,
 artist_location text,
 artist_name text,
 song_id text,
@@ -113,11 +113,19 @@ weekday int not null
 
 # STAGING TABLES
 
-staging_events_copy = ("""
-""").format()
+staging_events_copy = (f"""
+copy log_data_staging from 's3://udacity-dend/log_data'
+credentials 'aws_iam_role={config.get('CLUSTER', 'DWH_ROLE_ARN')}'
+format json 'auto'
+region 'us-west-2';
+""")
 
-staging_songs_copy = ("""
-""").format()
+staging_songs_copy = (f"""
+copy song_data_staging from 's3://udacity-dend/song_data'
+credentials 'aws_iam_role={config.get('CLUSTER', 'DWH_ROLE_ARN')}'
+format json 'auto'
+region 'us-west-2';
+""")
 
 # FINAL TABLES
 
@@ -148,7 +156,6 @@ drop_table_queries = [
 	song_table_drop, artist_table_drop, time_table_drop
 ]
 
-copy_table_queries = []
-# staging_events_copy, staging_songs_copy]
+copy_table_queries = [staging_events_copy, staging_songs_copy]
 insert_table_queries = []
 # songplay_table_insert, user_table_insert, song_table_insert, artist_table_insert, time_table_insert]

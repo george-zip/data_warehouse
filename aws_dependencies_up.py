@@ -32,6 +32,16 @@ def role_exists(role_id: str, iam_client: boto3.client) -> bool:
 	return False
 
 
+def update_configuration(config: configparser.ConfigParser, cluster_description: dict):
+	# update configuration file with endpoint of server and IAM ARN
+	print(f"DWH endpoint: {cluster_description['Endpoint']['Address']}")
+	print(f"DWH role ARN: {cluster_description['IamRoles'][0]['IamRoleArn']}")
+	config["CLUSTER"]["DWH_ENDPOINT"] = cluster_description['Endpoint']['Address']
+	config["CLUSTER"]["DWH_ROLE_ARN"] = cluster_description['IamRoles'][0]['IamRoleArn']
+	with open("dwh.cfg", "w") as file:
+		config.write(file)
+
+
 def create_iam_role(config: configparser.ConfigParser) -> boto3.client:
 	# create iam role if it does not exist and attach s3 access policy
 	# return constructed client
@@ -62,8 +72,9 @@ def create_iam_role(config: configparser.ConfigParser) -> boto3.client:
 	return iam
 
 
-def create_cluster(config: configparser.ConfigParser, iam: boto3.client) -> boto3.client:
-	# create redshift cluster if it does not exist, wait until it is available and return client
+def create_cluster(config: configparser.ConfigParser, iam: boto3.client) -> (boto3.client, dict):
+	# create redshift cluster if it does not exist, wait until it is available
+	# return client and cluster description
 	redshift_client = boto3.client(
 		"redshift",
 		region_name=config.get("CLUSTER", "DWH_REGION"),
@@ -104,13 +115,7 @@ def create_cluster(config: configparser.ConfigParser, iam: boto3.client) -> boto
 			cluster_description = redshift_client.describe_clusters(
 				ClusterIdentifier=config.get("CLUSTER", "DWH_CLUSTER_IDENTIFIER")
 			)["Clusters"][0]
-	print(f"DWH endpoint: {cluster_description['Endpoint']['Address']}")
-	print(f"DWH role ARN: {cluster_description['IamRoles'][0]['IamRoleArn']}")
-	config["CLUSTER"]["DWH_ENDPOINT"] = cluster_description['Endpoint']['Address']
-	config["CLUSTER"]["DWH_ROLE_ARN"] = cluster_description['IamRoles'][0]['IamRoleArn']
-	with open("dwh.cfg", "w") as file:
-		config.write(file)
-	return redshift_client
+	return redshift_client, cluster_description
 
 
 def main():
@@ -118,7 +123,8 @@ def main():
 	config = configparser.ConfigParser()
 	config.read('dwh.cfg')
 	iam = create_iam_role(config)
-	create_cluster(config, iam)
+	_, cluster_description = create_cluster(config, iam)
+	update_configuration(config, cluster_description)
 	print("Cluster is running")
 
 

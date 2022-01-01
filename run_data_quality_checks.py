@@ -1,20 +1,11 @@
 import configparser
 import psycopg2
-from sql_queries import create_table_queries, drop_table_queries
 
-
-def drop_tables(cur, conn):
-	for query in drop_table_queries:
-		cur.execute(query)
-		conn.commit()
-
-
-def create_tables(cur, conn):
-	for query in create_table_queries:
-		cur.execute(query)
-		conn.commit()
-
-
+data_quality_checks = [
+	"select * from log_data_staging limit 5;",
+	"select * from song_data_staging limit 5",
+	# "select * from stl_load_errors;"
+]
 
 
 def main():
@@ -30,8 +21,14 @@ def main():
 	)
 	cur = conn.cursor()
 
-	drop_tables(cur, conn)
-	create_tables(cur, conn)
+	for query in data_quality_checks:
+		cur.execute(query)
+		results = cur.fetchall()
+		if len(results):
+			for r in results:
+				print(r)
+		else:
+			raise RuntimeError(f"Query did not return results {query}")
 
 	conn.close()
 
