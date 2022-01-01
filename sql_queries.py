@@ -18,7 +18,6 @@ time_table_drop = "drop table if exists time"
 
 staging_events_table_create = ("""
 create table if not exists log_data_staging (
-num int,
 artist text,
 auth text,
 firstName text,
@@ -36,13 +35,12 @@ song text,
 status int,
 ts bigint,
 userAgent text,
-userId text
+userid text
 );
 """)
 
 staging_songs_table_create = ("""
 create table if not exists song_data_staging (
-num int,
 artist_id text,
 artist_latitude numeric,
 artist_longitude numeric,
@@ -57,8 +55,9 @@ year int
 
 songplay_table_create = ("""
 create table if not exists songplays (
-start_time bigint not null sortkey, 
-user_id int not null distkey, 
+songplay_id int identity (0, 1) not null,
+start_time bigint not null distkey sortkey, 
+user_id int null, 
 level text not null, 
 song_id text null, 
 artist_id text null, 
@@ -92,9 +91,9 @@ artist_table_create = ("""
 create table if not exists artists (
 artist_id text sortkey, 
 name text not null, 
-location text not null, 
-latitude numeric not null, 
-longitude numeric not null
+location text null, 
+latitude numeric null, 
+longitude numeric null
 ) diststyle all;
 """)
 
@@ -116,7 +115,7 @@ weekday int not null
 staging_events_copy = (f"""
 copy log_data_staging from 's3://udacity-dend/log_data'
 credentials 'aws_iam_role={config.get('CLUSTER', 'DWH_ROLE_ARN')}'
-format json 'auto'
+format as json 's3://udacity-dend/log_json_path.json'
 region 'us-west-2';
 """)
 
@@ -130,32 +129,64 @@ region 'us-west-2';
 # FINAL TABLES
 
 songplay_table_insert = ("""
+insert into songplays (start_time, user_id, level, song_id, artist_id, session_id, location, user_agent)
+select st.ts, cast(st.userId as integer), st.level, s.song_id, a.artist_id, st.sessionid,
+       st.location, st.useragent
+from log_data_staging st
+left outer join songs s
+on st.song = s.title and cast(st.length as numeric(10,2)) = cast(s.duration as numeric(10,2))
+left outer join artists a
+on st.artist = a.name
+where st.userId != ''
+and page = 'NextSong';
 """)
 
 user_table_insert = ("""
+insert into users (user_id, first_name, last_name, gender, level)
+select distinct cast(userId as integer), firstName, lastName, gender, level
+from log_data_staging
+where userId != ''
 """)
 
 song_table_insert = ("""
+insert into songs (song_id, title, artist_id, year, duration) 
+select distinct song_id, title, artist_id, year, duration
+from song_data_staging
 """)
 
 artist_table_insert = ("""
+insert into artists (artist_id, name, location, latitude, longitude) 
+select distinct artist_id, artist_name, artist_location, artist_latitude, artist_longitude
+from song_data_staging
 """)
 
 time_table_insert = ("""
+insert into time (start_time, hour, day, week, month, year, weekday)
+select distinct ts,
+date_part('hour', dateadd("ms", ts, '1970-01-01')) as hour,
+date_part('day', dateadd("ms", ts, '1970-01-01')) as day,
+date_part('week', dateadd("ms", ts, '1970-01-01')) as week,
+date_part('month', dateadd("ms", ts, '1970-01-01')) as month,
+date_part('year', dateadd("ms", ts, '1970-01-01')) as year,
+date_part('dow', dateadd("ms", ts, '1970-01-01')) as weekday
+from log_data_staging
+where page = 'NextSong'
 """)
 
 # QUERY LISTS
 
 create_table_queries = [
-	staging_events_table_create, staging_songs_table_create, songplay_table_create, user_table_create,
-	song_table_create, artist_table_create, time_table_create
+    staging_events_table_create, staging_songs_table_create, songplay_table_create, user_table_create,
+    song_table_create, artist_table_create, time_table_create
 ]
 
 drop_table_queries = [
-	staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop,
-	song_table_drop, artist_table_drop, time_table_drop
+    staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop,
+    song_table_drop, artist_table_drop, time_table_drop
 ]
 
 copy_table_queries = [staging_events_copy, staging_songs_copy]
-insert_table_queries = []
-# songplay_table_insert, user_table_insert, song_table_insert, artist_table_insert, time_table_insert]
+insert_table_queries = [
+    song_table_insert, artist_table_insert, user_table_insert, artist_table_insert, time_table_insert,
+    songplay_table_insert
+]

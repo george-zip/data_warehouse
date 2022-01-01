@@ -4,7 +4,12 @@ import psycopg2
 data_quality_checks = [
 	"select * from log_data_staging limit 5;",
 	"select * from song_data_staging limit 5",
-	# "select * from stl_load_errors;"
+	"select * from songs limit 5",
+	"select * from artists limit 5;",
+	"select * from users limit 5;",
+	"select * from time limit 5",
+	"select sp.* from songplays sp, artists a where sp.artist_id = a.artist_id limit 5",
+	"select sp.* from songplays sp, songs s where sp.song_id = s.song_id limit 5"
 ]
 
 
@@ -28,7 +33,17 @@ def main():
 			for r in results:
 				print(r)
 		else:
-			raise RuntimeError(f"Query did not return results {query}")
+			raise RuntimeError(f"Query did not return results: {query}")
+		print("-" * 10)
+
+	# cur.execute("delete from log_data_staging where 1=1;")
+	# cur.execute("delete from song_data_staging where 1=1;")
+	# cur.execute("delete from songs where 1=1;")
+	# cur.execute("delete from artists where 1=1;")
+	# cur.execute("delete from users where 1=1;")
+	# cur.execute("delete from time where 1=1;")
+	# cur.execute("delete from songplays where 1=1;")
+	# conn.commit()
 
 	conn.close()
 
