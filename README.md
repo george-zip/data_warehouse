@@ -1,31 +1,28 @@
-## Project: Data Modeling with Postgres
+## Project: Data Warehouse
 
-### Background
+### Overview
 
-This is a data warehousing project that is part of the Udacity Data Engineering Nanodegree. The goal is to design and populate an AWS Redshift schema that facilitates analytical queries for a music streaming application. The client has outgrown their current database and would like to move their data and ETL processes to the cloud. 
+This project contains scripts to create and populate an AWS Redshift database as part of a data warehouse. The source of data is JSON files stored in S3. 
 
-JSON log files hosted in S3 provide the source of raw song play data and other JSON files provide metadata about the music.
-
-### Implementation
+### Details
 
 The project contains the following scripts:
 
-[aws_dependencies_up.py](aws_dependencies_up.py) brings up the project's dependencies on AWS, including establishing IAM roles and the Redshift cluster. Waits until cluster is described as available. This may take several minutes.
+[aws_dependencies_up.py](aws_dependencies_up.py) brings up the project's dependencies on AWS, including establishing IAM roles and the Redshift cluster.
 
 [aws_dependencies_down.py](aws_dependencies_down.py) shuts down the Redshift cluster on AWS and deletes any IAM roles.
 
-[create_tables.py](create_tables.py) drops and creates the schema, using queries in [sql_queries.py](sql_queries.py).
+[create_tables.py](create_tables.py) runs queries to drop and create tables in Redshift [sql_queries.py](sql_queries.py).
 
 [etl.py](etl.py) extracts raw data from S3 into staging tables then loads it into the final tables.
 
-[sql_queries.py](sql_queries.py) defines the SQL commands for schema creation and population.
+[sql_queries.py](sql_queries.py) contains SQL table creation, copy and insertion commands.
 
-[run_data_quality_checks.py](run_data_quality_checks.py) runs verification queries on the populated database tables.
-
+[run_data_quality_checks.py](run_data_quality_checks.py) runs verification checks on the populated database tables.
 
 ### How to run
 
-The versions used to build this application are in requirements.txt. To install these libraries, run
+To install the libraries needed to run this project, please run:
 
 ```commandline
 pip install -r requirements.txt
