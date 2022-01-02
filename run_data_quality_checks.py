@@ -17,9 +17,14 @@ data_quality_checks = [
 ]
 
 
-def main():
-	# load configuration, connect to DB, then run queries
-	# raise exception on unexpected result
+def main() -> None:
+	"""Load configuration, connect to DB, then run queries. Raise an exception
+	if a query does not return any rows.
+
+	Returns:
+		None
+
+	"""
 	config = configparser.ConfigParser()
 	config.read('dwh.cfg')
 

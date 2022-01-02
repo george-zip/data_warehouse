@@ -8,22 +8,45 @@ Copy and insert commands are in sql_queries.py
 """
 
 
-def load_staging_tables(cur, conn):
-    # extract from S3 into staging tables
+def load_staging_tables(cur, conn) -> None:
+    """Extract from S3 into staging tables
+
+    Args:
+        cur (psycopg2.cursor): database cursor
+        conn (psycopg2.connection): database connection
+
+    Returns:
+        None
+
+    """
     for query in copy_table_queries:
         cur.execute(query)
         conn.commit()
 
 
-def insert_tables(cur, conn):
-    # insert into final from staging tables
+def insert_tables(cur, conn) -> None:
+    """Insert into final from staging tables
+
+    Args:
+        cur (psycopg2.cursor): database cursor
+        conn (psycopg2.connection): database connection
+
+    Returns:
+        None
+
+    """
     for query in insert_table_queries:
         cur.execute(query)
         conn.commit()
 
 
-def main():
-    # load configuration, connect to DB, then run extract and load process
+def main() -> None:
+    """Load configuration, connect to DB, then run extract and load process
+
+    Returns:
+        None
+
+    """
     config = configparser.ConfigParser()
     config.read('dwh.cfg')
 
